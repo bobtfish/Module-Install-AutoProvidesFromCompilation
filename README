@@ -1,0 +1,23 @@
+NAME
+    Module::Install::AutoProvidesFromCompilation
+
+SYNOPSIS
+        use inc::Module::Install;
+        name 'Example';
+        all_from 'lib/Example.pm'
+        auto_provides_from_compilation();
+        WriteAll;
+
+DESCRIPTION
+    Ensures that your META.yml contains provides information for every class
+    in your lib/ directory.
+
+AUTHOR
+        Tomas Doran (t0m) <bobtfish@bobtfish.net>
+
+COPYRIGHT
+    Copyright (C) 2009 Tomas Doran
+
+LICENSE
+    This software is licensed under the same terms as perl itself.
+
