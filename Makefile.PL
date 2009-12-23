@@ -8,7 +8,6 @@ use Module::Install::ReadmeFromPod;
 all_from 'lib/Module/Install/AutoProvidesFromCompilation.pm';
 readme_from 'lib/Module/Install/AutoProvidesFromCompilation.pm';
 
-requires 'Module::Find';
 requires 'B::Compiling';
 requires 'B::Hooks::Op::Check::StashChange';
 

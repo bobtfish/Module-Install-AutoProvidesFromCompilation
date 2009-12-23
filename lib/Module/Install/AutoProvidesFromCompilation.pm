@@ -1,37 +1,58 @@
-package Module::Install::ProvidesFromCompilation;
+package Module::Install::AutoProvidesFromCompilation;
+use strict;
+use warnings;
 use base qw/Module::Install::Base/;
 
 our $VERSION = '0.01';
 $VERSION = eval $VERSION;
 
+use FindBin ();
+use lib ();
+use File::Find ();
+
+my $get_packages_compiled_from_file_in_dir = sub {
+    my ($file, $dir) = @_;
+    my %packages;
+
+    local $@;
+    eval {
+        my $id = B::Hooks::OP::Check::StashChange::register(sub {
+            my ($new, $old) = @_;
+            my $file = B::Compiling::PL_compiling()->file;
+
+            return unless $file =~ s/^$dir/lib/;
+            
+            $packages{$new} ||= $file
+                unless $new eq __PACKAGE__;
+        });
+
+        require $file;
+    };
+    
+    return %packages;
+};
+
 sub auto_provides_from_compilation {
     my $self = shift;
+
     return unless $Module::Install::AUTHOR;
     require Module::Find;
     require B::Hooks::OP::Check::StashChange;
     require B::Compiling;
-    require FindBin;
-    require lib;
-    my $dist_name = 'Example';
+
     my $libdir = "$FindBin::Bin/lib";
+
+    local @INC = @INC;
     lib->import($libdir);
 
     my %packages;
-
-    our $id = B::Hooks::OP::Check::StashChange::register(sub {
-        my ($new, $old) = @_;
-        my $file = B::Compiling::PL_compiling()->file;
-        return unless $file =~ s/^$libdir/lib/;
-        $packages{$new} ||= $file
-            if $new =~ /^$dist_name/;
-    });
-
-    require "$libdir/$dist_name";
-    Module::Find::useall($dist_name);
-    undef $id;
+    File::Find::find(sub {
+        return unless $File::Find::name =~ /\.pm$/;
+        %packages = (%packages, $get_packages_compiled_from_file_in_dir->($File::Find::name, $libdir));
+    }, $libdir);;
 
     no strict 'refs';
-    provides($_ => {
+    $self->provides($_ => {
         file => $packages{$_},
         ${$_.'::VERSION'} ? ( version => $_->VERSION() ) : ()
     }) for keys %packages;
