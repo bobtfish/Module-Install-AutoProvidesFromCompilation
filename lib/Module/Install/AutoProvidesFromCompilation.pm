@@ -54,6 +54,7 @@ sub auto_provides_from_compilation {
     no strict 'refs';
     $self->provides($_ => {
         file => $packages{$_},
+        # This is a crappy way of doing this. FIXME
         ${$_.'::VERSION'} ? ( version => $_->VERSION() ) : ()
     }) for keys %packages;
 }
@@ -62,7 +63,7 @@ sub auto_provides_from_compilation {
 
 =head1 NAME
 
-Module::Install::AutoProvidesFromCompilation
+Module::Install::AutoProvidesFromCompilation - Automatically add provides metadata by compiling your dist.
 
 =head1 SYNOPSIS
 
@@ -74,8 +75,53 @@ Module::Install::AutoProvidesFromCompilation
 
 =head1 DESCRIPTION
 
-Ensures that your META.yml contains provides information for
-every class in your lib/ directory.
+Ensures that the META.yml generated in your distribution contains information for
+every class in your C<lib/> directory. This is useful for distributions using
+L<MooseX::Declare> for example, as the C<class> and C<role> keywords are not
+recognised by the PAUSE indexer.
+
+This module is an author-side extension, and acts as a no-op for users installing
+one of your dists.
+
+=head1 WARNING
+
+This module should be considered B<HIGHLY EXPERIMENTAL>. Please check that the META.yml
+generated looks sane before sending your distribution to CPAN!
+
+=head1 METHODS
+
+=head2 auto_provides_from_compilation
+
+Takes no arguments, works the magic.. Call it before you call C<WriteAll()>.
+
+=head1 HOW IT WORKS
+
+L<B::Hooks::OP::Check::StashChange> is used to hook the perl compiler. Every .pm file
+in your distribution is compiled and when the stash code is being compiled in is changed,
+the filename being compiled is found by L<B::Compiling>.
+
+When all the dependencies for your distributon as installed, this is theoretically a
+foolproof way of working out the correct set of packages.
+
+However, we get notifed of B<all> the packages compiled (including your modules
+dependencies), which could result in claiming to provide things which are not
+actually part of your module, and a broken distribution.
+
+Just to be crystal clear on that: B<PLEASE CHECK YOUR GENERATED META.yml, AS DEMONS
+FLYING OUT OF YOUR NOSE MAY OFFEND>.
+
+You have been warned.
+
+=head1 SEE ALSO
+
+L<Module::Install::ProvidesClass> - PPI based solution to the same issue.
+
+=head1 BUGS
+
+Almost certainally. There are exactly no tests for this code right now.
+
+Patches (or just pointing me at distributions which don't play nicely with this
+extension) welcome.
 
 =head1 AUTHOR
 
@@ -89,4 +135,4 @@ Copyright (C) 2009 Tomas Doran
 
 This software is licensed under the same terms as perl itself.
 
-
+=cut

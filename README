@@ -1,5 +1,6 @@
 NAME
-    Module::Install::AutoProvidesFromCompilation
+    Module::Install::AutoProvidesFromCompilation - Automatically add
+    provides metadata by compiling your dist.
 
 SYNOPSIS
         use inc::Module::Install;
@@ -9,8 +10,46 @@ SYNOPSIS
         WriteAll;
 
 DESCRIPTION
-    Ensures that your META.yml contains provides information for every class
-    in your lib/ directory.
+    Ensures that the META.yml generated in your distribution contains
+    information for every class in your "lib/" directory. This is useful for
+    distributions using MooseX::Declare for example, as the "class" and
+    "role" keywords are not recognised by the PAUSE indexer.
+
+    This module is an author-side extension, and acts as a no-op for users
+    installing one of your dists.
+
+WARNING
+    This module should be considered HIGHLY EXPERIMENTAL. Please check that
+    the META.yml generated looks sane before sending your distribution to
+    CPAN!
+
+HOW IT WORKS
+    B::Hooks::OP::Check::StashChange is used to hook the perl compiler.
+    Every .pm file in your distribution is compiled and when the stash code
+    is being compiled in is changed, the filename being compiled is found by
+    B::Compiling.
+
+    When all the dependencies for your distributon as installed, this is
+    theoretically a foolproof way of working out the correct set of
+    packages.
+
+    However, we get notifed of all the packages compiled (including your
+    modules dependencies), which could result in claiming to provide things
+    which are not actually part of your module, and a broken distribution.
+
+    Just to be crystal clear on that: PLEASE CHECK YOUR GENERATED META.yml,
+    AS DEMONS FLYING OUT OF YOUR NOSE MAY OFFEND.
+
+    You have been warned.
+
+SEE ALSO
+    Module::Install::ProvidesClass - PPI based solution to the same issue.
+
+BUGS
+    Almost certainally. There are exactly no tests for this code right now.
+
+    Patches (or just pointing me at distributions which don't play nicely
+    with this extension) welcome.
 
 AUTHOR
         Tomas Doran (t0m) <bobtfish@bobtfish.net>
