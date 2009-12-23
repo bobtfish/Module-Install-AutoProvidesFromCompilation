@@ -18,5 +18,10 @@ author_requires 'Test::Pod::Coverage' => '1.04';
 test_requires 'Test::More' => '0.88';
 author_tests 't/author';
 auto_install;
+
+resources repository => 'git://github.com/bobtfish/Module-Install-AutoProvidesFromCompilation.git';
+
+provides 'Module::Install::AutoProvidesFromCompilation' => 'lib/Module/Install/AutoProvidesFromCompilation.pm';
+
 WriteAll;
 
